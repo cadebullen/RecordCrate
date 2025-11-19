@@ -34,10 +34,10 @@ class GeminiService {
     );
   }
 
-  // Return fallback response if Gemini is not configured
+  // Return null if Gemini is not configured - let frontend handle it
   async processNaturalLanguageQuery(query) {
     if (!this.isConfigured) {
-      return this.generateFallbackResponse(query);
+      return null;
     }
 
     const prompt = `
@@ -91,7 +91,7 @@ Provide exactly 6 popular recommendations that exist on Spotify.
 
       if (!text) {
         console.error("Could not extract text from Gemini response");
-        return this.generateFallbackResponse(query);
+        return null;
       }
 
       // Parse the JSON response
@@ -117,88 +117,17 @@ Provide exactly 6 popular recommendations that exist on Spotify.
         this.isConfigured = false;
       }
 
-      // Fallback to basic response on error
-      return this.generateFallbackResponse(query);
+      // Return null on error - let frontend show regular search results only
+      return null;
     }
-  }
-
-  //Generate a basic fallback response when Gemini is not available
-  generateFallbackResponse(query) {
-    const lowerQuery = query.toLowerCase();
-    const terms = [];
-    const genres = [
-      "rock",
-      "pop",
-      "hip-hop",
-      "rap",
-      "jazz",
-      "classical",
-      "electronic",
-      "indie",
-      "country",
-      "r&b",
-      "funk",
-      "soul",
-    ];
-    const moods = [
-      "sad",
-      "happy",
-      "chill",
-      "energetic",
-      "relaxing",
-      "upbeat",
-      "melancholy",
-      "romantic",
-      "angry",
-    ];
-
-    genres.forEach((genre) => {
-      if (lowerQuery.includes(genre)) terms.push(genre);
-    });
-
-    moods.forEach((mood) => {
-      if (lowerQuery.includes(mood)) terms.push(mood);
-    });
-
-    let recommendations = [];
-
-    if (lowerQuery.includes("blonde") && lowerQuery.includes("frank ocean")) {
-      recommendations = [
-        {
-          type: "album",
-          name: "Channel Orange",
-          artist: "Frank Ocean",
-          reason: "Another acclaimed Frank Ocean album with similar R&B style",
-          searchQuery: "Frank Ocean Channel Orange",
-        },
-        {
-          type: "artist",
-          name: "The Weeknd",
-          reason: "Similar R&B and alternative sound",
-          searchQuery: "The Weeknd",
-        },
-      ];
-    } else if (terms.length > 0) {
-      recommendations = [
-        {
-          type: "genre",
-          name: `${terms[0]} music`,
-          reason: `Explore ${terms[0]} genre based on your request`,
-          searchQuery: terms[0],
-        },
-      ];
-    }
-
-    return {
-      interpretation: `Looking for music related to: ${query}`,
-      recommendations,
-      additionalSearchTerms:
-        terms.length > 0 ? terms : ["popular", "new releases"],
-    };
   }
 
   //Generate search suggestions based on Gemini's recommendations
   async generateSearchSuggestions(geminiResponse) {
+    if (!geminiResponse) {
+      return [];
+    }
+
     const suggestions = [];
 
     // Add direct recommendations

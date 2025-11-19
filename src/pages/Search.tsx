@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { SearchInput } from '../components/SearchInput';
 import { SearchDropdown } from '../components/SearchDropdown';
@@ -156,39 +156,8 @@ export const Search: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const hasInitialized = useRef(false);
   const shouldAutoSearch = useRef(false);
-
-  // Initialize query from URL params on mount
-  useEffect(() => {
-    if (!hasInitialized.current) {
-      const queryFromUrl = searchParams.get('q');
-      if (queryFromUrl && queryFromUrl !== query) {
-        setQuery(queryFromUrl);
-        hasInitialized.current = true;
-      }
-    }
-  }, [searchParams, query, setQuery]);
-
-  // Trigger search after query is set from URL
-  useEffect(() => {
-    if (hasInitialized.current && query && !hasSearched) {
-      handleSearch();
-      hasInitialized.current = false; // Reset flag
-    }
-    // Auto-search when genre/mood is clicked
-    if (shouldAutoSearch.current && query) {
-      handleSearch();
-      shouldAutoSearch.current = false;
-    }
-  }, [query, hasSearched, handleSearch]);
-
-  // Update URL when query changes (after search is performed)
-  useEffect(() => {
-    if (hasSearched && query) {
-      setSearchParams({ q: query }, { replace: true });
-    } else if (!query && hasSearched) {
-      setSearchParams({}, { replace: true });
-    }
-  }, [query, hasSearched]);
+  const isClearing = useRef(false);
+  const isTyping = useRef(false);
 
   // Natural Language Search
   const { 
@@ -199,10 +168,12 @@ export const Search: React.FC = () => {
     clearResponse: clearNlResponse 
   } = useNaturalLanguageSearch();
 
-  // Check for natural language queries and process them
-  useEffect(() => {
-    if (query && hasSearched) {
-      // Simple heuristic to detect natural language queries
+  // Wrapper for search that includes AI processing
+  const handleSearchWithAI = useCallback(() => {
+    handleSearch();
+    
+    // Check if it's a natural language query after user explicitly searches
+    if (query && query.trim().length >= 5) {
       const naturalLanguageIndicators = [
         'like', 'similar to', 'reminds me of', 'sounds like', 'albums like',
         'music like', 'artists like', 'recommend', 'suggest', 'find me',
@@ -215,14 +186,105 @@ export const Search: React.FC = () => {
       );
 
       if (isNaturalLanguage) {
-        processNaturalLanguageQuery(query).catch(console.error);
+        // Silently fail if AI is unavailable - don't show error to user
+        processNaturalLanguageQuery(query).catch(() => {
+          // AI failed, but regular search results will still show
+          console.log('AI search unavailable, showing regular results only');
+        });
+      }
+    }
+  }, [handleSearch, query, processNaturalLanguageQuery]);
+
+  // Initialize query from URL on mount
+  useEffect(() => {
+    if (!hasInitialized.current && !isClearing.current) {
+      const queryFromUrl = searchParams.get('q');
+      if (queryFromUrl && queryFromUrl !== query) {
+        setQuery(queryFromUrl);
+        hasInitialized.current = true;
+      }
+    }
+    // Reset clearing flag after URL is processed
+    if (isClearing.current && !searchParams.get('q')) {
+      isClearing.current = false;
+    }
+  }, [searchParams, query, setQuery]);
+
+  // Trigger search after query is set from URL or genre click - NOT when typing
+  useEffect(() => {
+    if (hasInitialized.current && query && !hasSearched && !isTyping.current) {
+      handleSearchWithAI();
+      hasInitialized.current = false; // Reset flag
+    }
+    // Auto-search when genre/mood is clicked
+    if (shouldAutoSearch.current && query && !isTyping.current) {
+      handleSearchWithAI();
+      shouldAutoSearch.current = false;
+    }
+  }, [query, hasSearched, handleSearchWithAI]);
+
+  // Update URL when query changes (after search is performed)
+  useEffect(() => {
+    if (hasSearched && query) {
+      setSearchParams({ q: query }, { replace: true });
+    } else if (!query && hasSearched) {
+      setSearchParams({}, { replace: true });
+    }
+  }, [query, hasSearched, setSearchParams]);
+
+  // Wrapper to clear both regular and NL search results
+  const handleClearAll = () => {
+    // Set clearing flag to prevent URL re-initialization
+    isClearing.current = true;
+    hasInitialized.current = true;
+    isTyping.current = false; // Reset typing flag
+    // Clear all search state
+    handleClear();
+    clearNlResponse();
+    // Clear URL params
+    setSearchParams({}, { replace: true });
+  };
+
+  // Custom key handler that uses AI search wrapper
+  const handleKeyDownWithAI = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      isTyping.current = false; // Clear typing flag on submit
+      
+      // Check if user selected a dropdown suggestion
+      if (showDropdown && selectedIndex >= 0 && selectedIndex < dropdownSuggestions.length && dropdownSuggestions[selectedIndex]) {
+        // User has selected a suggestion - use it
+        handleSuggestionSelect(dropdownSuggestions[selectedIndex]);
       } else {
-        clearNlResponse();
+        // No suggestion selected - perform search with AI
+        handleSearchWithAI();
       }
     } else {
-      clearNlResponse();
+      // For all other keys, use normal key handling
+      handleKeyDown(e);
     }
-  }, [query, hasSearched, processNaturalLanguageQuery, clearNlResponse]);
+  };
+
+  // Wrapper for setQuery that marks user as actively typing
+  const handleQueryChange = useCallback((newQuery: string) => {
+    isTyping.current = true;
+    setQuery(newQuery);
+    
+    // Clear typing flag after user stops typing for a bit
+    const typingTimeout = setTimeout(() => {
+      isTyping.current = false;
+    }, 600);
+    
+    return () => clearTimeout(typingTimeout);
+  }, [setQuery]);
+
+  // Check for natural language queries and process them - DISABLED AUTO-TRIGGER
+  // Only runs when user explicitly searches, not on every keystroke
+  useEffect(() => {
+    // Don't auto-process NL queries to prevent interference with typing
+    // User must press Search button to trigger AI
+    return () => {};
+  }, []);
 
   const artistGenreMap = useMemo(() => {
     const map = new Map<string, string[]>();
@@ -375,15 +437,15 @@ export const Search: React.FC = () => {
         <div className="search-header">
           <h1>Search Music</h1>
 
-          <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="search-form">
+          <form onSubmit={(e) => { e.preventDefault(); handleSearchWithAI(); }} className="search-form">
             <div className="search-input-group" ref={dropdownRef}>
               <SearchInput
                 ref={inputRef}
                 value={query}
-                onChange={setQuery}
-                onSubmit={handleSearch}
-                onClear={handleClear}
-                onKeyDown={handleKeyDown}
+                onChange={handleQueryChange}
+                onSubmit={handleSearchWithAI}
+                onClear={handleClearAll}
+                onKeyDown={handleKeyDownWithAI}
                 onFocus={handleInputFocus}
                 onBlur={handleInputBlur}
                 ariaExpanded={showDropdown}
@@ -515,14 +577,16 @@ export const Search: React.FC = () => {
         {/* Results Section - Show albums, artists, tracks, and playlists */}
         {(albumResults.length > 0 || artistResults.length > 0 || trackResults.length > 0 || playlistResults.length > 0) && (
           <div className="unified-results">
-            <MusicFilterBar
-              filters={filters}
-              onChange={handleFilterChange}
-              genres={availableGenres}
-              decades={availableDecades}
-              label="Refine Results"
-              className="search-filter-controls"
-            />
+            {(filteredAlbumResults.length > 0 || filteredArtistResults.length > 0 || filteredTrackResults.length > 0 || playlistResults.length > 0) && (
+              <MusicFilterBar
+                filters={filters}
+                onChange={handleFilterChange}
+                genres={availableGenres}
+                decades={availableDecades}
+                label="Refine Results"
+                className="search-filter-controls"
+              />
+            )}
 
             {filteredAlbumResults.length > 0 && (
               <SearchResults

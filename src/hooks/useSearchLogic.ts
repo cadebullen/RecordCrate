@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, startTransition } from 'react';
 import { useSpotify } from './useSpotify';
 import type { SpotifyAlbum, SpotifyArtist, SpotifyTrack, SpotifyPlaylist } from '../types';
 import type { SearchResult } from '../components/SearchDropdown';
@@ -85,15 +85,15 @@ export const useSearchLogic = (props?: UseSearchLogicProps) => {
 
     // Debounced search for dropdown suggestions with caching
     useEffect(() => {
-        if (debounceTimeoutRef.current) {
-            window.clearTimeout(debounceTimeoutRef.current);
-        }
-
-        // Update current query ref
+        // Update current query ref immediately
         currentQueryRef.current = query;
         
         // Reset search initiated flag when user starts typing again
         searchInitiatedRef.current = false;
+
+        if (debounceTimeoutRef.current) {
+            window.clearTimeout(debounceTimeoutRef.current);
+        }
 
         if (query.trim().length >= 1) {
             debounceTimeoutRef.current = window.setTimeout(async () => {
@@ -140,26 +140,35 @@ export const useSearchLogic = (props?: UseSearchLogicProps) => {
 
                     // Final check before updating state
                     if (currentQueryRef.current === query && query.trim().length >= 1 && !searchInitiatedRef.current) {
-                        setDropdownSuggestions(scoredResults);
-                        setShowDropdown(scoredResults.length > 0);
+                        startTransition(() => {
+                            setDropdownSuggestions(scoredResults);
+                            setShowDropdown(scoredResults.length > 0);
+                        });
                     }
                 } catch {
                     // Only update error state if query hasn't changed and no search initiated
                     if (currentQueryRef.current === query && !searchInitiatedRef.current) {
-                        setDropdownSuggestions([]);
-                        setShowDropdown(false);
+                        startTransition(() => {
+                            setDropdownSuggestions([]);
+                            setShowDropdown(false);
+                        });
                     }
                 }
-            }, 150);
+            }, 500);
         } else {
-            // Immediately hide dropdown for short queries
-            setDropdownSuggestions([]);
-            setShowDropdown(false);
+            // Only clear results if query is completely empty, don't clear dropdown immediately
             if (query.trim().length === 0) {
-                setHasSearched(false);
-                setAlbumResults([]);
-                setArtistResults([]);
-                setTrackResults([]);
+                debounceTimeoutRef.current = window.setTimeout(() => {
+                    startTransition(() => {
+                        setDropdownSuggestions([]);
+                        setShowDropdown(false);
+                        setHasSearched(false);
+                        setAlbumResults([]);
+                        setArtistResults([]);
+                        setTrackResults([]);
+                        setPlaylistResults([]);
+                    });
+                }, 300);
             }
         }
 
@@ -246,6 +255,7 @@ export const useSearchLogic = (props?: UseSearchLogicProps) => {
         setAlbumResults([]);
         setArtistResults([]);
         setTrackResults([]);
+        setPlaylistResults([]);
         setLocalError(null);
         setDropdownSuggestions([]);
         setShowDropdown(false);
