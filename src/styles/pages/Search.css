@@ -247,3 +247,135 @@
         width: 220px;
     }
 }
+
+/* Search Instructions */
+.search-instructions {
+    max-width: 700px;
+    margin: 2rem auto;
+    background: var(--panel-bg);
+    border-radius: 12px;
+    border: 2px solid var(--border-color);
+}
+
+.instructions-toggle {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background: none;
+    border: none;
+    color: var(--rc-text);
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.instructions-toggle:hover {
+    background: var(--bg-color);
+    border-radius: 12px;
+}
+
+.toggle-icon {
+    font-size: 0.9rem;
+    transition: transform 0.3s ease;
+    color: var(--rc-red);
+}
+
+.toggle-icon.open {
+    transform: rotate(180deg);
+}
+
+.instructions-content {
+    padding: 0 1.5rem 1.5rem 1.5rem;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.instructions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.instruction-item {
+    padding: 1rem;
+    background: var(--bg-color);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.instruction-item h4 {
+    color: var(--rc-red);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+}
+
+.instruction-item p {
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+    font-size: 0.85rem;
+}
+
+.instruction-item ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.instruction-item li {
+    color: var(--rc-text);
+    margin-bottom: 0.5rem;
+    padding-left: 1.2rem;
+    position: relative;
+    font-size: 0.85rem;
+}
+
+.instruction-item li:before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: var(--rc-red);
+    font-weight: bold;
+}
+
+.instruction-item code {
+    background: var(--panel-bg);
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    color: var(--rc-red);
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+}
+
+@media (max-width: 768px) {
+    .search-instructions {
+        margin: 1.5rem 1rem;
+    }
+
+    .instructions-toggle {
+        padding: 0.85rem 1.2rem;
+        font-size: 1rem;
+    }
+
+    .instructions-content {
+        padding: 0 1.2rem 1.2rem 1.2rem;
+    }
+
+    .instructions-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}

@@ -110,6 +110,7 @@ export const Search: React.FC = () => {
     explicit: 'all',
   });
   const [genreSeeds, setGenreSeeds] = useState<string[]>([]);
+  const [showInstructions, setShowInstructions] = useState(false);
 
   const {
     query,
@@ -380,7 +381,7 @@ export const Search: React.FC = () => {
                 ariaExpanded={showDropdown}
                 ariaControls="search-dropdown"
                 ariaDescribedBy={error ? "search-error" : undefined}
-                placeholder="Search for albums, artists, tracks... or try 'albums like Blonde by Frank Ocean'"
+                placeholder="Search for albums, artists, tracks..."
               />
 
               <SearchDropdown
@@ -444,6 +445,44 @@ export const Search: React.FC = () => {
         {error && (
           <div className="error-section">
             <p className="error-message" id="search-error">{error}</p>
+          </div>
+        )}
+
+        {/* Search Instructions - Show when no search has been performed OR when empty search error */}
+        {(!hasSearched || (error && error.includes('Please enter a search term'))) && !loading && !nlLoading && (
+          <div className="search-instructions">
+            <button 
+              className="instructions-toggle"
+              onClick={() => setShowInstructions(!showInstructions)}
+              aria-expanded={showInstructions}
+            >
+              <span>How to Search</span>
+              <span className={`toggle-icon ${showInstructions ? 'open' : ''}`}>▼</span>
+            </button>
+            {showInstructions && (
+              <div className="instructions-content">
+                <div className="instructions-grid">
+                  <div className="instruction-item">
+                    <h4>Basic Search</h4>
+                    <p>Search for albums, artists, or tracks by name</p>
+                    <ul>
+                      <li><code>Blonde</code> - Find the album</li>
+                      <li><code>Frank Ocean</code> - Find the artist</li>
+                      <li><code>Nights</code> - Find the track</li>
+                    </ul>
+                  </div>
+                  <div className="instruction-item">
+                    <h4>AI-Powered Search</h4>
+                    <p>Use natural language to discover music</p>
+                    <ul>
+                      <li><code>albums like Blonde by Frank Ocean</code></li>
+                      <li><code>artists similar to Playboi Carti</code></li>
+                      <li><code>songs like Nights</code></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
