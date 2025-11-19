@@ -7,6 +7,7 @@ import { Search } from './pages/Search';
 import { Profile } from './pages/Profile';
 import { AlbumDetail } from './pages/AlbumDetail';
 import { ArtistDetail } from './pages/ArtistDetail';
+import { PlaylistDetail } from './pages/PlaylistDetail';
 import { SpotifyCallback } from './pages/SpotifyCallback';
 import './styles/global.css';
 import './styles/index.css';
@@ -27,6 +28,7 @@ function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/album/:albumId" element={<AlbumDetail />} />
               <Route path="/artist/:id" element={<ArtistDetail />} />
+              <Route path="/playlist/:id" element={<PlaylistDetail />} />
               <Route path="/callback" element={<SpotifyCallback />} />
             </Routes>
           </main>

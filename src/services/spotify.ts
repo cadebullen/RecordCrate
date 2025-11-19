@@ -5,6 +5,7 @@ import type {
   SpotifyAlbum,
   SpotifyArtist,
   SpotifyTrack,
+  SpotifyPlaylist,
   SpotifyUser,
 } from '../types';
 
@@ -123,6 +124,38 @@ class SpotifyService {
     );
 
     return response.data.tracks.items;
+  }
+
+  async searchPlaylists(query: string): Promise<SpotifyPlaylist[]> {
+    const token = await this.getAccessToken();
+
+    const response = await axios.get(
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(
+        query
+      )}&type=playlist&limit=20`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data.playlists.items;
+  }
+
+  async getPlaylist(id: string): Promise<SpotifyPlaylist & { tracks: { items: Array<{ track: SpotifyTrack }> } }> {
+    const token = await this.getAccessToken();
+
+    const response = await axios.get(
+      `https://api.spotify.com/v1/playlists/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
   }
 
   async getAlbum(id: string): Promise<SpotifyAlbum> {

@@ -5,6 +5,7 @@ import { SearchDropdown } from '../components/SearchDropdown';
 import { SearchResults } from '../components/SearchResults';
 import { ArtistSearchResults } from '../components/ArtistSearchResults';
 import { TrackSearchResults } from '../components/TrackSearchResults';
+import { PlaylistSearchResults } from '../components/PlaylistSearchResults';
 import { NaturalLanguageResults } from '../components/NaturalLanguageResults';
 import { useSearchLogic } from '../hooks/useSearchLogic';
 import { useClickOutside } from '../hooks/useClickOutside';
@@ -102,7 +103,7 @@ const matchesExplicitFilter = (filters: MusicFilterState, explicit: boolean | un
 export const Search: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { getAvailableGenres, searchArtists, searchAlbums, searchTracks } = useSpotify();
+  const { getAvailableGenres, searchArtists, searchAlbums, searchTracks, searchPlaylists } = useSpotify();
   const [filters, setFilters] = useState<MusicFilterState>({
     genre: 'all',
     decade: 'all',
@@ -117,6 +118,7 @@ export const Search: React.FC = () => {
     albumResults,
     artistResults,
     trackResults,
+    playlistResults,
     localError,
     dropdownSuggestions,
     showDropdown,
@@ -153,6 +155,7 @@ export const Search: React.FC = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const hasInitialized = useRef(false);
+  const shouldAutoSearch = useRef(false);
 
   // Initialize query from URL params on mount
   useEffect(() => {
@@ -163,7 +166,7 @@ export const Search: React.FC = () => {
         hasInitialized.current = true;
       }
     }
-  }, [searchParams]);
+  }, [searchParams, query, setQuery]);
 
   // Trigger search after query is set from URL
   useEffect(() => {
@@ -171,7 +174,12 @@ export const Search: React.FC = () => {
       handleSearch();
       hasInitialized.current = false; // Reset flag
     }
-  }, [query]);
+    // Auto-search when genre/mood is clicked
+    if (shouldAutoSearch.current && query) {
+      handleSearch();
+      shouldAutoSearch.current = false;
+    }
+  }, [query, hasSearched, handleSearch]);
 
   // Update URL when query changes (after search is performed)
   useEffect(() => {
@@ -434,9 +442,19 @@ export const Search: React.FC = () => {
                 console.error('Error finding track:', error);
               }
             }}
+            onPlaylistClick={async (playlistName: string) => {
+              try {
+                const playlists = await searchPlaylists(playlistName);
+                if (playlists && playlists.length > 0) {
+                  navigate(`/playlist/${playlists[0].id}`);
+                }
+              } catch (error) {
+                console.error('Error finding playlist:', error);
+              }
+            }}
             onExecuteSearch={(searchQuery: string) => {
+              shouldAutoSearch.current = true;
               setQuery(searchQuery);
-              handleSearch();
             }}
           />
         )}
@@ -494,8 +512,8 @@ export const Search: React.FC = () => {
           </div>
         )}
 
-        {/* Results Section - Show albums, artists, and tracks */}
-        {(albumResults.length > 0 || artistResults.length > 0 || trackResults.length > 0) && (
+        {/* Results Section - Show albums, artists, tracks, and playlists */}
+        {(albumResults.length > 0 || artistResults.length > 0 || trackResults.length > 0 || playlistResults.length > 0) && (
           <div className="unified-results">
             <MusicFilterBar
               filters={filters}
@@ -532,9 +550,16 @@ export const Search: React.FC = () => {
               />
             )}
 
+            {playlistResults.length > 0 && (
+              <PlaylistSearchResults
+                playlists={playlistResults}
+              />
+            )}
+
             {filteredAlbumResults.length === 0 &&
               filteredArtistResults.length === 0 &&
-              filteredTrackResults.length === 0 && (
+              filteredTrackResults.length === 0 &&
+              playlistResults.length === 0 && (
                 <div className="no-results">
                   <p>No results match the current filters.</p>
                 </div>

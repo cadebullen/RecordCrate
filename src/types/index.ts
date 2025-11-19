@@ -85,6 +85,34 @@ export interface SpotifyArtist {
   };
 }
 
+export interface SpotifyPlaylist {
+  id: string;
+  name: string;
+  description: string | null;
+  images?: Array<{
+    url: string;
+    height: number;
+    width: number;
+  }>;
+  owner: {
+    id: string;
+    display_name: string;
+    external_urls: {
+      spotify: string;
+    };
+  };
+  tracks: {
+    href: string;
+    total: number;
+  };
+  external_urls: {
+    spotify: string;
+  };
+  collaborative: boolean;
+  public: boolean;
+  snapshot_id: string;
+}
+
 export interface SongRating {
   trackId: string;
   trackName: string;

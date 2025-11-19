@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Music, User, Disc, Search } from 'lucide-react';
+import { Sparkles, Music, User, Disc, Search, List } from 'lucide-react';
 import type { NaturalLanguageResponse } from '../hooks/useNaturalLanguageSearch';
 import '../styles/components/NaturalLanguageResults.css';
 
@@ -9,6 +9,7 @@ interface NaturalLanguageResultsProps {
   onArtistClick: (artistName: string) => void;
   onAlbumClick: (albumName: string, artistName: string) => void;
   onTrackClick: (trackName: string, artistName: string) => void;
+  onPlaylistClick?: (playlistName: string) => void;
 }
 
 const getIconForType = (type: string) => {
@@ -16,6 +17,7 @@ const getIconForType = (type: string) => {
     case 'album': return <Disc size={16} />;
     case 'artist': return <User size={16} />;
     case 'track': return <Music size={16} />;
+    case 'playlist': return <List size={16} />;
     case 'genre': return <Search size={16} />;
     default: return <Music size={16} />;
   }
@@ -26,6 +28,7 @@ const getTypeLabel = (type: string) => {
     case 'album': return 'Album';
     case 'artist': return 'Artist';
     case 'track': return 'Track';
+    case 'playlist': return 'Playlist';
     case 'genre': return 'Genre';
     default: return 'Music';
   }
@@ -37,6 +40,7 @@ export const NaturalLanguageResults: React.FC<NaturalLanguageResultsProps> = ({
   onArtistClick,
   onAlbumClick,
   onTrackClick,
+  onPlaylistClick,
 }) => {
   if (!response.isNaturalLanguage) {
     return null;
@@ -68,6 +72,8 @@ export const NaturalLanguageResults: React.FC<NaturalLanguageResultsProps> = ({
                   onAlbumClick(rec.name, rec.artist);
                 } else if (rec.type === 'track' && rec.artist) {
                   onTrackClick(rec.name, rec.artist);
+                } else if (rec.type === 'playlist' && onPlaylistClick) {
+                  onPlaylistClick(rec.name);
                 } else {
                   onExecuteSearch(rec.searchQuery);
                 }

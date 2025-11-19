@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useSpotify } from './useSpotify';
-import type { SpotifyAlbum, SpotifyArtist, SpotifyTrack } from '../types';
+import type { SpotifyAlbum, SpotifyArtist, SpotifyTrack, SpotifyPlaylist } from '../types';
 import type { SearchResult } from '../components/SearchDropdown';
 
 // Function to calculate relevance score for search results
@@ -69,13 +69,14 @@ export const useSearchLogic = (props?: UseSearchLogicProps) => {
     const [albumResults, setAlbumResults] = useState<SpotifyAlbum[]>([]);
     const [artistResults, setArtistResults] = useState<SpotifyArtist[]>([]);
     const [trackResults, setTrackResults] = useState<SpotifyTrack[]>([]);
+    const [playlistResults, setPlaylistResults] = useState<SpotifyPlaylist[]>([]);
     const [localError, setLocalError] = useState<string | null>(null);
     const [dropdownSuggestions, setDropdownSuggestions] = useState<SearchResult[]>([]);
     const [showDropdown, setShowDropdown] = useState(false);
     const [selectedIndex, setSelectedIndex] = useState(-1);
     const [hasSearched, setHasSearched] = useState(false);
 
-    const { loading, error: spotifyError, searchAlbums, searchArtists, searchTracks } = useSpotify();
+    const { loading, error: spotifyError, searchAlbums, searchArtists, searchTracks, searchPlaylists } = useSpotify();
     const debounceTimeoutRef = useRef<number | undefined>(undefined);
     const currentQueryRef = useRef<string>('');
     const blurTimeoutRef = useRef<number | undefined>(undefined);
@@ -184,15 +185,17 @@ export const useSearchLogic = (props?: UseSearchLogicProps) => {
         setDropdownSuggestions([]); // Clear suggestions to prevent re-showing
         setSelectedIndex(-1); // Reset selection
 
-        // Search both albums and artists simultaneously
-        const [albums, artists] = await Promise.all([
+        // Search albums, artists, and playlists simultaneously
+        const [albums, artists, playlists] = await Promise.all([
             searchAlbums(query),
-            searchArtists(query)
+            searchArtists(query),
+            searchPlaylists(query)
         ]);
 
         setAlbumResults(albums);
         setArtistResults(artists);
-    }, [query, searchAlbums, searchArtists]);
+        setPlaylistResults(playlists);
+    }, [query, searchAlbums, searchArtists, searchPlaylists]);
 
     const handleSuggestionSelect = useCallback((result: SearchResult) => {
         if (result.type === 'album') {
@@ -321,6 +324,7 @@ export const useSearchLogic = (props?: UseSearchLogicProps) => {
         albumResults,
         artistResults,
         trackResults,
+        playlistResults,
         localError,
         dropdownSuggestions,
         showDropdown,

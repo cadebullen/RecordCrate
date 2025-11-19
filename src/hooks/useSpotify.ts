@@ -6,6 +6,7 @@ import type {
   SpotifyAlbum,
   SpotifyArtist,
   SpotifyTrack,
+  SpotifyPlaylist,
 } from '../types';
 
 export const useSpotify = () => {
@@ -54,6 +55,22 @@ export const useSpotify = () => {
     } catch (error) {
       console.error('Failed to search tracks', error);
       setError('Failed to search tracks');
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const searchPlaylists = useCallback(async (query: string): Promise<SpotifyPlaylist[]> => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const results = await spotifyService.searchPlaylists(query);
+      return results;
+    } catch (error) {
+      console.error('Failed to search playlists', error);
+      setError('Failed to search playlists');
       return [];
     } finally {
       setLoading(false);
@@ -170,6 +187,7 @@ export const useSpotify = () => {
     searchAlbums,
     searchArtists,
     searchTracks,
+    searchPlaylists,
     getAlbum,
     getFilteredContent,
     getPopularTracks,

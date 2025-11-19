@@ -189,7 +189,8 @@
 }
 
 .album-carousel,
-.artist-carousel {
+.artist-carousel,
+.playlist-carousel {
     display: flex;
     gap: 1rem;
     overflow-x: auto;
@@ -200,30 +201,35 @@
 }
 
 .album-carousel::-webkit-scrollbar,
-.artist-carousel::-webkit-scrollbar {
+.artist-carousel::-webkit-scrollbar,
+.playlist-carousel::-webkit-scrollbar {
     height: 8px;
 }
 
 .album-carousel::-webkit-scrollbar-track,
-.artist-carousel::-webkit-scrollbar-track {
+.artist-carousel::-webkit-scrollbar-track,
+.playlist-carousel::-webkit-scrollbar-track {
     background: var(--panel-bg);
     border-radius: 4px;
 }
 
 .album-carousel::-webkit-scrollbar-thumb,
-.artist-carousel::-webkit-scrollbar-thumb {
+.artist-carousel::-webkit-scrollbar-thumb,
+.playlist-carousel::-webkit-scrollbar-thumb {
     background: var(--rc-gray);
     border-radius: 4px;
 }
 
 .album-carousel::-webkit-scrollbar-thumb:hover,
-.artist-carousel::-webkit-scrollbar-thumb:hover {
+.artist-carousel::-webkit-scrollbar-thumb:hover,
+.playlist-carousel::-webkit-scrollbar-thumb:hover {
     background: var(--rc-red);
 }
 
 /* Ensure carousel items don't shrink */
 .album-carousel .album-card,
-.artist-carousel .artist-card {
+.artist-carousel .artist-card,
+.playlist-carousel .playlist-card {
     flex-shrink: 0;
     width: 200px;
 }
@@ -239,7 +245,8 @@
     }
     
     .album-carousel .album-card,
-    .artist-carousel .artist-card {
+    .artist-carousel .artist-card,
+    .playlist-carousel .playlist-card {
         width: 180px;
     }
     

@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { backend } from '../services/backend';
 
 export interface NaturalLanguageRecommendation {
-  type: 'album' | 'artist' | 'track';
+  type: 'album' | 'artist' | 'track' | 'playlist';
   name: string;
   artist?: string;
   reason: string;
@@ -10,7 +10,7 @@ export interface NaturalLanguageRecommendation {
 }
 
 export interface SearchSuggestion {
-  type: 'album' | 'artist' | 'track' | 'genre';
+  type: 'album' | 'artist' | 'track' | 'genre' | 'playlist';
   query: string;
   displayText: string;
   reason: string;
