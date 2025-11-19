@@ -27,20 +27,15 @@ class GeminiService {
    * Now returns true for most queries to enable AI-powered search
    */
   isNaturalLanguageQuery(query) {
-    // Enable AI for most queries - helps with "Songs like X", "Artists like Y", "Chill trap", etc.
     const trimmed = query.trim();
-    // Use AI if query has multiple words or contains similarity keywords
     return (
       trimmed.split(/\s+/).length >= 2 ||
       /\b(like|similar|chill|vibe|mood|style|sound)\b/i.test(trimmed)
     );
   }
 
-  /**
-   * Process natural language query and return structured music recommendations
-   */
+  // Return fallback response if Gemini is not configured
   async processNaturalLanguageQuery(query) {
-    // Return fallback response if Gemini is not configured
     if (!this.isConfigured) {
       return this.generateFallbackResponse(query);
     }
@@ -82,7 +77,7 @@ Respond ONLY with valid JSON (no markdown, no extra text):
   "additionalSearchTerms": ["genre", "mood"]
 }
 
-Provide 4-5 popular recommendations that exist on Spotify.
+Provide exactly 6 popular recommendations that exist on Spotify.
 `;
 
     try {
@@ -127,13 +122,9 @@ Provide 4-5 popular recommendations that exist on Spotify.
     }
   }
 
-  /**
-   * Generate a basic fallback response when Gemini is not available
-   */
+  //Generate a basic fallback response when Gemini is not available
   generateFallbackResponse(query) {
     const lowerQuery = query.toLowerCase();
-
-    // Extract potential terms from the query
     const terms = [];
     const genres = [
       "rock",
@@ -169,7 +160,6 @@ Provide 4-5 popular recommendations that exist on Spotify.
       if (lowerQuery.includes(mood)) terms.push(mood);
     });
 
-    // Basic pattern matching for recommendations
     let recommendations = [];
 
     if (lowerQuery.includes("blonde") && lowerQuery.includes("frank ocean")) {
@@ -207,9 +197,7 @@ Provide 4-5 popular recommendations that exist on Spotify.
     };
   }
 
-  /**
-   * Generate search suggestions based on Gemini's recommendations
-   */
+  //Generate search suggestions based on Gemini's recommendations
   async generateSearchSuggestions(geminiResponse) {
     const suggestions = [];
 

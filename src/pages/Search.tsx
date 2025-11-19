@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { SearchInput } from '../components/SearchInput';
 import { SearchDropdown } from '../components/SearchDropdown';
 import { SearchResults } from '../components/SearchResults';
@@ -101,7 +101,8 @@ const matchesExplicitFilter = (filters: MusicFilterState, explicit: boolean | un
 
 export const Search: React.FC = () => {
   const navigate = useNavigate();
-  const { getAvailableGenres } = useSpotify();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { getAvailableGenres, searchArtists, searchAlbums, searchTracks } = useSpotify();
   const [filters, setFilters] = useState<MusicFilterState>({
     genre: 'all',
     decade: 'all',
@@ -150,6 +151,35 @@ export const Search: React.FC = () => {
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const hasInitialized = useRef(false);
+
+  // Initialize query from URL params on mount
+  useEffect(() => {
+    if (!hasInitialized.current) {
+      const queryFromUrl = searchParams.get('q');
+      if (queryFromUrl && queryFromUrl !== query) {
+        setQuery(queryFromUrl);
+        hasInitialized.current = true;
+      }
+    }
+  }, [searchParams]);
+
+  // Trigger search after query is set from URL
+  useEffect(() => {
+    if (hasInitialized.current && query && !hasSearched) {
+      handleSearch();
+      hasInitialized.current = false; // Reset flag
+    }
+  }, [query]);
+
+  // Update URL when query changes (after search is performed)
+  useEffect(() => {
+    if (hasSearched && query) {
+      setSearchParams({ q: query }, { replace: true });
+    } else if (!query && hasSearched) {
+      setSearchParams({}, { replace: true });
+    }
+  }, [query, hasSearched]);
 
   // Natural Language Search
   const { 
@@ -368,9 +398,40 @@ export const Search: React.FC = () => {
         {nlResponse && nlResponse.isNaturalLanguage && !nlError && (
           <NaturalLanguageResults
             response={nlResponse}
-            onSuggestionClick={(suggestion: SearchSuggestion) => {
-              setQuery(suggestion.query);
-              handleSearch();
+            onArtistClick={async (artistName: string) => {
+              try {
+                const artists = await searchArtists(artistName);
+                if (artists && artists.length > 0) {
+                  navigate(`/artist/${artists[0].id}`);
+                }
+              } catch (error) {
+                console.error('Error finding artist:', error);
+              }
+            }}
+            onAlbumClick={async (albumName: string, artistName: string) => {
+              try {
+                const query = `${albumName} ${artistName}`;
+                const albums = await searchAlbums(query);
+                if (albums && albums.length > 0) {
+                  navigate(`/album/${albums[0].id}`);
+                }
+              } catch (error) {
+                console.error('Error finding album:', error);
+              }
+            }}
+            onTrackClick={async (trackName: string, artistName: string) => {
+              try {
+                const query = `${trackName} ${artistName}`;
+                const tracks = await searchTracks(query);
+                if (tracks && tracks.length > 0) {
+                  // Navigate to the album that contains this track
+                  if (tracks[0].album?.id) {
+                    navigate(`/album/${tracks[0].album.id}`);
+                  }
+                }
+              } catch (error) {
+                console.error('Error finding track:', error);
+              }
             }}
             onExecuteSearch={(searchQuery: string) => {
               setQuery(searchQuery);

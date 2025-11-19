@@ -1,12 +1,14 @@
 import React from 'react';
 import { Sparkles, Music, User, Disc, Search } from 'lucide-react';
-import type { NaturalLanguageResponse, SearchSuggestion } from '../hooks/useNaturalLanguageSearch';
+import type { NaturalLanguageResponse } from '../hooks/useNaturalLanguageSearch';
 import '../styles/components/NaturalLanguageResults.css';
 
 interface NaturalLanguageResultsProps {
   response: NaturalLanguageResponse;
-  onSuggestionClick: (suggestion: SearchSuggestion) => void;
   onExecuteSearch: (query: string) => void;
+  onArtistClick: (artistName: string) => void;
+  onAlbumClick: (albumName: string, artistName: string) => void;
+  onTrackClick: (trackName: string, artistName: string) => void;
 }
 
 const getIconForType = (type: string) => {
@@ -31,8 +33,10 @@ const getTypeLabel = (type: string) => {
 
 export const NaturalLanguageResults: React.FC<NaturalLanguageResultsProps> = ({
   response,
-  onSuggestionClick,
   onExecuteSearch,
+  onArtistClick,
+  onAlbumClick,
+  onTrackClick,
 }) => {
   if (!response.isNaturalLanguage) {
     return null;
@@ -56,11 +60,24 @@ export const NaturalLanguageResults: React.FC<NaturalLanguageResultsProps> = ({
         <div className="nl-recommendations">
           <h4>Recommended for you:</h4>
           <div className="nl-recommendations-grid">
-            {response.recommendations.map((rec, index) => (
+            {response.recommendations.map((rec, index) => {
+              const handleClick = () => {
+                if (rec.type === 'artist') {
+                  onArtistClick(rec.name);
+                } else if (rec.type === 'album' && rec.artist) {
+                  onAlbumClick(rec.name, rec.artist);
+                } else if (rec.type === 'track' && rec.artist) {
+                  onTrackClick(rec.name, rec.artist);
+                } else {
+                  onExecuteSearch(rec.searchQuery);
+                }
+              };
+
+              return (
               <div
                 key={index}
                 className="nl-recommendation-card"
-                onClick={() => onExecuteSearch(rec.searchQuery)}
+                onClick={handleClick}
               >
                 <div className="nl-rec-header">
                   <div className="nl-rec-icon">
@@ -79,30 +96,8 @@ export const NaturalLanguageResults: React.FC<NaturalLanguageResultsProps> = ({
                   <p className="nl-rec-reason">{rec.reason}</p>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {response.searchSuggestions && response.searchSuggestions.length > 0 && (
-        <div className="nl-search-suggestions">
-          <h4>Try these searches:</h4>
-          <div className="nl-suggestions-list">
-            {response.searchSuggestions.map((suggestion, index) => (
-              <button
-                key={index}
-                className="nl-suggestion-button"
-                onClick={() => onSuggestionClick(suggestion)}
-              >
-                <div className="nl-suggestion-icon">
-                  {getIconForType(suggestion.type)}
-                </div>
-                <div className="nl-suggestion-content">
-                  <span className="nl-suggestion-text">{suggestion.displayText}</span>
-                  <span className="nl-suggestion-reason">{suggestion.reason}</span>
-                </div>
-              </button>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
