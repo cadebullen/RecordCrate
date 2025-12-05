@@ -38,11 +38,19 @@ export const useNaturalLanguageSearch = () => {
     try {
       const data = await backend.processNaturalLanguageSearch(query) as NaturalLanguageResponse;
       
+      // If backend returns null (AI unavailable), treat as error
+      if (!data) {
+        setError('AI search unavailable');
+        setLastResponse(null);
+        throw new Error('AI search unavailable');
+      }
+      
       setLastResponse(data);
       return data;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to process natural language query';
       setError(errorMessage);
+      setLastResponse(null); // Clear any previous response
       throw err;
     } finally {
       setLoading(false);

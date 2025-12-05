@@ -2,15 +2,18 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { AlbumCard } from '../components/AlbumCard';
 import { ArtistCard } from '../components/ArtistCard';
 import { FilterTabs } from '../components/FilterTabs';
+import { DiscoverModal } from '../components/DiscoverModal';
 import AlbumStreakCalendar, { type AlbumStreakCalendarEntry } from '../components/AlbumStreakCalendar';
 import { useSpotify } from '../hooks/useSpotify';
 import { useAuth } from '../context/useAuth';
 import type { SpotifyAlbum, SpotifyArtist, FilterType, AlbumReview } from '../types';
+import '../styles/pages/Discover.css';
 
 export const Discover: React.FC = () => {
   const [albums, setAlbums] = useState<SpotifyAlbum[]>([]);
   const [artists, setArtists] = useState<SpotifyArtist[]>([]);
   const [activeFilter, setActiveFilter] = useState<FilterType>('new-releases-week');
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { loading, error, getFilteredContent } = useSpotify();
   const {
     isSpotifyLinked,
@@ -141,6 +144,18 @@ export const Discover: React.FC = () => {
         <section className="hero">
           <h1>Discover Music</h1>
           <p>Explore new releases, popular albums, and personalized recommendations</p>
+          <button 
+            className="random-discover-btn"
+            onClick={() => setIsModalOpen(true)}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+            </svg>
+            Random Discovery
+          </button>
         </section>
 
         <section className="streak-calendar-section">
@@ -220,6 +235,11 @@ export const Discover: React.FC = () => {
           )}
         </section>
       </div>
+      
+      <DiscoverModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
     </div>
   );
 };

@@ -1,0 +1,243 @@
+.discover {
+  min-height: 100vh;
+  padding: 80px 0 40px;
+}
+
+.discover .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.discover .hero {
+  text-align: center;
+  margin-bottom: 48px;
+  position: relative;
+}
+
+.discover .hero h1 {
+  font-size: 48px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  color: #fff;
+}
+
+.discover .hero p {
+  font-size: 18px;
+  color: #b3b3b3;
+  margin: 0 0 24px 0;
+}
+
+.random-discover-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #1db954 0%, #1ed760 100%);
+  color: #fff;
+  border: none;
+  border-radius: 28px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(29, 185, 84, 0.3);
+  margin-top: 8px;
+}
+
+.random-discover-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(29, 185, 84, 0.5);
+}
+
+.random-discover-btn:active {
+  transform: translateY(0);
+}
+
+.random-discover-btn svg {
+  transition: transform 0.3s ease;
+}
+
+.random-discover-btn:hover svg {
+  transform: rotate(180deg);
+}
+
+.streak-calendar-section {
+  margin-bottom: 48px;
+}
+
+.calendar-lock-wrapper {
+  position: relative;
+}
+
+.calendar-lock-wrapper.locked {
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+.calendar-lock-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  background: rgba(18, 18, 18, 0.95);
+  padding: 32px;
+  border-radius: 16px;
+  z-index: 10;
+  min-width: 300px;
+}
+
+.calendar-lock-overlay p {
+  color: #fff;
+  margin: 0 0 20px 0;
+  font-size: 16px;
+}
+
+.spotify-login-btn {
+  padding: 12px 24px;
+  background: #1db954;
+  color: #fff;
+  border: none;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.spotify-login-btn:hover:not(:disabled) {
+  background: #1ed760;
+  transform: translateY(-2px);
+}
+
+.spotify-login-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.streak-login-note {
+  text-align: center;
+  color: #b3b3b3;
+  font-size: 14px;
+  margin-top: 16px;
+}
+
+.content-filters {
+  margin-bottom: 32px;
+}
+
+.personal-note {
+  background: rgba(29, 185, 84, 0.1);
+  border: 1px solid rgba(29, 185, 84, 0.3);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.personal-note p {
+  color: #1db954;
+  margin: 0;
+  font-size: 14px;
+}
+
+.filtered-content {
+  margin-bottom: 48px;
+}
+
+.filtered-content h2 {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 24px 0;
+  color: #fff;
+}
+
+.content-section {
+  margin-bottom: 48px;
+}
+
+.content-section h3 {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  color: #fff;
+}
+
+.album-grid,
+.artist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 24px;
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 18px;
+  color: #b3b3b3;
+}
+
+.error {
+  color: #ff6b6b;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .discover {
+    padding: 60px 0 32px;
+  }
+
+  .discover .hero h1 {
+    font-size: 36px;
+  }
+
+  .discover .hero p {
+    font-size: 16px;
+  }
+
+  .random-discover-btn {
+    font-size: 15px;
+    padding: 12px 24px;
+  }
+
+  .filtered-content h2 {
+    font-size: 28px;
+  }
+
+  .content-section h3 {
+    font-size: 20px;
+  }
+
+  .album-grid,
+  .artist-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .discover .hero h1 {
+    font-size: 28px;
+  }
+
+  .discover .hero p {
+    font-size: 14px;
+  }
+
+  .random-discover-btn {
+    font-size: 14px;
+    padding: 10px 20px;
+  }
+
+  .album-grid,
+  .artist-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+  }
+
+  .calendar-lock-overlay {
+    min-width: 250px;
+    padding: 24px;
+  }
+}
